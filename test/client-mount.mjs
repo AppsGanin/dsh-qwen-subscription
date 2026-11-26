@@ -776,6 +776,21 @@ await check('an account note is sent as the login label', async () => {
   }
 });
 
+await check('controls carry accessible labels and the card is focus-scoped', async () => {
+  const rpc = createRpc({ status: () => ({ ok: true, value: EMPTY_STATUS }) });
+  const renderer = await mountSection(section, rpc);
+  try {
+    const signIn = renderer.findButton('Войти');
+    assert.equal(signIn.props['aria-label'], 'Войти', 'the sign-in button has an aria-label');
+    const input = renderer.findInput('Необязательная заметка об аккаунте');
+    assert.equal(input.props['aria-label'], 'Необязательная заметка об аккаунте', 'the note input has an aria-label');
+    const scoped = renderer.nodes().find((node) => node.props && node.props['data-qwen-card'] !== undefined);
+    assert.ok(scoped, 'the card root carries the focus-scope attribute');
+  } finally {
+    renderer.unmount();
+  }
+});
+
 await check('an account with usage shows the request/token line', async () => {
   const withUsage = { ...SIGNED_STATUS, accounts: SIGNED_STATUS.accounts.map((a) => ({ ...a, usage: { requests: 7, inputTokens: 1200, outputTokens: 340 } })) };
   const rpc = createRpc({ status: () => ({ ok: true, value: withUsage }) });
