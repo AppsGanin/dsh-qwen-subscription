@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # Runtime and dev dependencies (semantic-release tooling, react for tests).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+  # GitHub Actions used by CI and Release.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
