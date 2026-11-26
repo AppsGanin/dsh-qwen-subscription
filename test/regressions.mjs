@@ -125,10 +125,13 @@ process.stdout.write('neighbouring paths\n');
   globalThis.fetch = realFetch;
   equal([code, calls], ['ABORTED', 0], 'an already-aborted request fails before any transport');
 
-  pool.markFailure('a1', { code: 'RATE_LIMIT', failure: { providerRetryAfterMs: 1 } });
+  // A long cooldown is reliably still fresh; a separate 1 ms one is checked only
+  // after a wait, so neither assertion races the clock on a fast runner.
+  pool.markFailure('a1', { code: 'RATE_LIMIT', failure: { providerRetryAfterMs: 5000 } });
   ok(pool.cooldownOf('a1') !== undefined, 'a fresh cooldown is reported');
+  pool.markFailure('a2', { code: 'RATE_LIMIT', failure: { providerRetryAfterMs: 1 } });
   await new Promise((resolve) => setTimeout(resolve, 20));
-  equal(pool.cooldownOf('a1'), undefined, 'an expired cooldown clears itself');
+  equal(pool.cooldownOf('a2'), undefined, 'an expired cooldown clears itself');
 
   const empty = new QwenAdapter({ auth: new QwenAuth({ logger: { debug() {} } }), pool: new AccountPool({ auth: { state: async () => undefined } }) });
   let missing = 'none';
