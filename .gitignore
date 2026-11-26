@@ -1,0 +1,7 @@
+# Credentials never belong in the repository.
+auth.json
+*.tmp
+
+node_modules/
+*.log
+.DS_Store

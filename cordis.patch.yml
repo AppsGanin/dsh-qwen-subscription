@@ -1,0 +1,5 @@
+# Bundle self-activation patch: installing this package into a profile mounts the
+# Qwen (qwen.ai subscription) provider route on the profile's LLM service.
+- insert:
+    - id: llm-qwen-subscription
+      name: dsh-llm-qwen-subscription

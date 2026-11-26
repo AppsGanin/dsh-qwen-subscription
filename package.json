@@ -1,0 +1,62 @@
+{
+  "name": "dsh-llm-qwen-subscription",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Use a qwen.ai subscription as a DeepSeek Harness LLM provider (qwen4-max, qwen3.8-max, qwen3.8-flash) with OAuth device-flow sign-in and an account pool.",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "dsh-qwen-login": "bin/qwen-login.mjs"
+  },
+  "files": [
+    "lib",
+    "bin",
+    "docs",
+    "test",
+    "cordis.patch.yml",
+    "README.md",
+    "README.ru.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "login": "node bin/qwen-login.mjs",
+    "smoke": "node test/smoke.mjs",
+    "test": "node --test test/"
+  },
+  "author": "AppsGanin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AppsGanin/dsh-qwen-subscription.git"
+  },
+  "homepage": "https://github.com/AppsGanin/dsh-qwen-subscription#readme",
+  "bugs": {
+    "url": "https://github.com/AppsGanin/dsh-qwen-subscription/issues"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "llm",
+    "oauth",
+    "qwen",
+    "qwen.ai",
+    "subscription",
+    "device-flow"
+  ]
+}
