@@ -129,6 +129,21 @@ const afterCancel = await (await pollRoute.fetch(envelope('qwen-auth.loginPoll',
 equal(afterCancel.result.ok, false, 'a canceled flow is gone');
 globalThis.fetch = realFetch;
 
+// test-connection endpoint (account still present, token live)
+{
+  const testRoute = routes.find((route) => route.path === '/api/qwen-auth.test');
+  const realFetch2 = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith('/models')) return new Response(JSON.stringify({ data: [{ id: 'qwen4-max' }, { id: 'qwen3.8-flash' }] }), { status: 200, headers: { 'content-type': 'application/json' } });
+    return new Response('{}', { status: 404 });
+  };
+  const tested = await (await testRoute.fetch(envelope('qwen-auth.test', 'rpc-10', {}))).json();
+  globalThis.fetch = realFetch2;
+  equal(tested.result.ok, true, 'test connection answers successfully');
+  equal(tested.result.value.models, 2, 'test connection reports the model count');
+  ok(Number.isFinite(tested.result.value.latencyMs), 'test connection reports latency');
+}
+
 const signOutRoute = routes.find((route) => route.path === '/api/qwen-auth.signOut');
 const signOutBody = await (await signOutRoute.fetch(envelope('qwen-auth.signOut', 'rpc-9', {}))).json();
 equal(signOutBody.result.value.signedOut, 1, 'signOut without an id removes the account');

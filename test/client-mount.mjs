@@ -21,7 +21,7 @@ const BUNDLE = join(HERE, '..', 'lib', 'client.js');
 const MODULE_ID = 'dsh-llm-qwen-subscription';
 const CHANNEL = '/api';
 const METHOD_PREFIX = 'qwen-auth.';
-const ENDPOINTS = ['status', 'loginStart', 'loginPoll', 'loginCancel', 'signOut', 'prefer'];
+const ENDPOINTS = ['status', 'loginStart', 'loginPoll', 'loginCancel', 'signOut', 'prefer', 'test'];
 
 /**
  * Full RPC method name of one endpoint.
@@ -723,6 +723,23 @@ await check('every call uses the /api channel and a qwen-auth. method name', () 
       : '';
     assert.equal(ENDPOINTS.includes(bare), true, 'unexpected method name: ' + call.endpoint);
     assert.equal(typeof call.payload, 'object', 'method ' + call.endpoint + ' was called without a payload');
+  }
+});
+
+await check('the test-connection button calls qwen-auth.test and shows the result', async () => {
+  const rpc = createRpc({
+    status: () => ({ ok: true, value: EMPTY_STATUS }),
+    test: () => ({ ok: true, value: { latencyMs: 123, models: 3, account: 'user@example.com' } }),
+  });
+  const renderer = await mountSection(section, rpc);
+  try {
+    assert.ok(renderer.findButton('Проверить соединение'), 'the test-connection button is missing');
+    await renderer.click('Проверить соединение');
+    await settle(renderer, 3);
+    assert.ok(rpc.calls.some((call) => call.endpoint === method('test')), 'qwen-auth.test was not called');
+    assert.ok(renderer.text().includes('123'), 'the latency is not shown');
+  } finally {
+    renderer.unmount();
   }
 });
 
