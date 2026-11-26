@@ -7,6 +7,7 @@
  */
 import assert from 'node:assert/strict'
 import { QwenAdapter } from '../lib/adapter.js'
+import { modelInfo } from '../lib/catalog.js'
 
 let checks = 0;
 function ok(condition, label) {
@@ -66,5 +67,15 @@ ok(models.every((model) => model.badge && typeof model.badge.text.en === 'string
 ok(models[0].badge.text.en.includes('context'), 'the badge names the context window');
 const resolved = await adapter.resolveModel('qwen', 'qwen4-max');
 ok(resolved.context.contextWindow > 0, 'resolveModel answers metadata');
+
+process.stdout.write('disclosed output cap\n');
+{
+  const base = { id: 'm', name: 'M', contextWindow: 1000000, inputModalities: ['text'] };
+  equal(modelInfo('qwen', 'm', { ...base, maxOutputTokens: 65536 }).defaultMaxTokens, 65536, 'a disclosed output cap becomes the default');
+  equal(modelInfo('qwen', 'm', { ...base, maxOutputTokens: 65536 }, { maxTokens: 1000 }).defaultMaxTokens, 1000, 'a lower configured cap is respected');
+  equal(modelInfo('qwen', 'm', { ...base, maxOutputTokens: 8192 }, { maxTokens: 65536 }).defaultMaxTokens, 8192, 'the disclosed cap bounds a higher configured value');
+  equal(modelInfo('qwen', 'm', base).defaultMaxTokens, 32768, 'without a disclosed cap the default applies');
+  equal(modelInfo('qwen', 'm', base, { maxTokens: 4096 }).defaultMaxTokens, 4096, 'a configured cap applies when nothing is disclosed');
+}
 
 process.stdout.write('\n' + String(checks) + ' adapter contract checks passed\n');
