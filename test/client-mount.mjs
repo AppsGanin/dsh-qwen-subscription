@@ -815,10 +815,58 @@ await check('the card lists the advertised models', async () => {
     const text = renderer.text();
     assert.ok(text.includes('qwen4-max'), 'the first model id is missing');
     assert.ok(text.includes('qwen3.8-flash'), 'the second model id is missing');
-    assert.ok(text.includes('Модели:'), 'the models label is missing');
+    assert.ok(text.includes('Модели'), 'the models label is missing');
   } finally {
     renderer.unmount();
   }
+});
+
+await check('the pool and the models sit under their own section labels', async () => {
+  const rpc = createRpc({ status: () => ({ ok: true, value: { ...SIGNED_STATUS, models: [{ id: 'qwen4-max' }] } }) });
+  const renderer = await mountSection(section, rpc);
+  try {
+    const text = renderer.text();
+    assert.ok(text.includes('Аккаунты'), 'the pool label is missing');
+    assert.ok(text.includes('Модели'), 'the models label is missing');
+  } finally {
+    renderer.unmount();
+  }
+});
+
+await check('the injected stylesheet carries hover and focus rules and is removed on dispose', () => {
+  const appended = [];
+  const removed = [];
+  const previous = globalThis.document;
+  globalThis.document = {
+    createElement() {
+      const node = { textContent: '', attributes: {}, setAttribute(name, value) { this.attributes[name] = value; }, remove() { removed.push(this); } };
+      return node;
+    },
+    head: { appendChild(node) { appended.push(node); } },
+  };
+  const cleanups = [];
+  try {
+    bundle.apply({
+      get(name) {
+        if (name === 'connection') return { rpc: connectionRpc };
+        if (name === 'locale') return locale;
+        return undefined;
+      },
+      effect(callback) { const cleanup = callback(); if (typeof cleanup === 'function') cleanups.push(cleanup); return cleanup; },
+      slots: { inject(name, callback) { return callback(); }, register(config, component) { return { config, component }; } },
+    });
+  } finally {
+    globalThis.document = previous;
+  }
+  assert.equal(appended.length, 1, 'exactly one style element is injected');
+  const css = appended[0].textContent;
+  assert.ok(css.includes(':focus-visible'), 'the focus ring rule is missing');
+  assert.ok(css.includes(':not(:disabled):hover'), 'the hover rule is missing');
+  assert.ok(css.includes('prefers-reduced-motion'), 'the reduced-motion guard is missing');
+  // The last effect is the stylesheet one; disposing the locale registration would
+  // strip the dictionaries that the checks after this one rely on.
+  cleanups[cleanups.length - 1]();
+  assert.equal(removed.length, 1, 'the style element is removed when the plugin disposes');
 });
 
 await check('an account with usage shows the request/token line', async () => {
