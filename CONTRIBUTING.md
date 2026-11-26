@@ -21,7 +21,9 @@ Write the subject in the imperative mood (`add`, not `added`), keep the body for
 
 `Release` workflow: `npm ci` → `npm test` → `semantic-release`, which computes the next
 version, prepends `CHANGELOG.md`, tags `vX.Y.Z`, publishes to npm and opens a GitHub Release.
-`CI` workflow: the same offline suites run on every push and pull request.
+`CI` workflow: the same offline suites run on every push and pull request, under c8, and
+print the coverage table (the browser bundle is exercised but not instrumented, so the
+table covers the Node half).
 
 Do not edit `version` in `package.json` or `CHANGELOG.md` by hand — both are written by the
 release run. Publish credentials come from npm trusted publishing (OIDC); see the setup notes
