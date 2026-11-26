@@ -32,6 +32,11 @@
         ]
       }
     ],
-    "@semantic-release/github"
+    [
+      "@semantic-release/github",
+      {
+        "failComment": false
+      }
+    ]
   ]
 }
