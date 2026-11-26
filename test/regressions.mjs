@@ -140,5 +140,36 @@ process.stdout.write('neighbouring paths\n');
   equal(missing, 'MISSING_CREDENTIAL', 'an empty pool fails with MISSING_CREDENTIAL');
 }
 
+process.stdout.write('stream idle watchdog\n');
+{
+  const auth = { accessToken: async () => 'tok', state: async () => undefined };
+  const adapter = new QwenAdapter({ auth, config: { streamIdleTimeoutMs: 60 }, logger: { warn() {} } });
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const encoder = new TextEncoder();
+    const body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode('data: ' + J({ choices: [{ index: 0, delta: { content: 'partial' } }] }) + '\n\n'));
+        // deliberately never close: the provider stalls after one chunk. Like a
+        // real fetch, the body is cancelled when the request signal aborts.
+        const onAbort = () => controller.error(new DOMException('aborted', 'AbortError'));
+        if (init.signal.aborted) onAbort();
+        else init.signal.addEventListener('abort', onAbort, { once: true });
+      },
+    });
+    return new Response(body, { status: 200, headers: { 'content-type': 'text/event-stream' } });
+  };
+  const chunks = [];
+  let code = 'none';
+  try {
+    for await (const chunk of adapter.stream({ provider: 'qwen', model: 'm', messages: [] })) chunks.push(chunk);
+  } catch (error) {
+    code = error.code;
+  }
+  globalThis.fetch = realFetch;
+  equal(code, 'TIMEOUT', 'a stalled stream is aborted with TIMEOUT');
+  ok(chunks.some((chunk) => chunk.type === 'text-delta'), 'the chunk emitted before the stall is kept');
+}
+
 await rm(dir, { recursive: true, force: true });
 process.stdout.write('\n' + String(checks) + ' regression checks passed\n');
