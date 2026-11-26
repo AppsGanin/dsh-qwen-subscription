@@ -6,15 +6,17 @@
 Добавляет провайдера `qwen` с моделями `qwen4-max`, `qwen3.8-max` и `qwen3.8-flash`
 (контекст 1M, текст и картинки).
 
+npm: [dsh-llm-qwen-subscription](https://www.npmjs.com/package/dsh-llm-qwen-subscription)
+
 ## Установка
 
 ```sh
-dsh plugin --profile desktop add github:AppsGanin/dsh-qwen-subscription
+dsh plugin --profile desktop add dsh-llm-qwen-subscription
 ```
 
 Для браузерного профиля замените `--profile desktop` на `--profile web`, затем **перезапустите**
-DeepSeek Harness: профиль собирается при старте. Если удобнее обычный git-адрес, та же команда
-принимает `https://github.com/AppsGanin/dsh-qwen-subscription.git`.
+DeepSeek Harness: профиль собирается при старте. Пакет ставится из npm. Чтобы поставить напрямую
+из репозитория, укажите `github:AppsGanin/dsh-qwen-subscription` вместо имени пакета.
 
 Обновление позже:
 

@@ -5,15 +5,17 @@ English | [Русский](README.ru.md)
 Use your **qwen.ai subscription** inside DeepSeek Harness — no API key, no separate billing.
 Adds the provider `qwen` with `qwen4-max`, `qwen3.8-max`, and `qwen3.8-flash` (1M context, text and images).
 
+npm: [dsh-llm-qwen-subscription](https://www.npmjs.com/package/dsh-llm-qwen-subscription)
+
 ## Install
 
 ```sh
-dsh plugin --profile desktop add github:AppsGanin/dsh-qwen-subscription
+dsh plugin --profile desktop add dsh-llm-qwen-subscription
 ```
 
 Use `--profile web` instead of `--profile desktop` for a browser profile, then **restart** DeepSeek
-Harness: profiles are composed at start-up. If your setup prefers plain git URLs, the same command
-accepts `https://github.com/AppsGanin/dsh-qwen-subscription.git`.
+Harness: profiles are composed at start-up. The package comes from npm. To install straight from the
+repository, use `github:AppsGanin/dsh-qwen-subscription` instead of the package name.
 
 Later updates:
 
