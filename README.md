@@ -1,6 +1,6 @@
 # dsh-qwen-subscription
 
-English | [Русский](README.ru.md)
+English | [Русский](README.ru.md) | [中文](README.zh.md)
 
 Use your **qwen.ai subscription** inside DeepSeek Harness — no API key, no separate billing.
 Adds the provider `qwen` with `qwen4-max`, `qwen3.8-max`, and `qwen3.8-flash` (1M context, text and images).
@@ -37,7 +37,7 @@ account shows up in the same card.
 - Pick a `qwen` model in the model picker: `qwen3.8-flash` for quick turns, `qwen4-max` for hard ones.
 - The reasoning level (`off` / `low` / `medium` / `high`) is selectable per model, next to the model name.
 - Images can be attached as usual; text, reasoning, tool calls and token usage all stream normally.
-- The settings card follows the app language (Settings → General → Language); English and Russian are built in.
+- The settings card follows the app language (Settings → General → Language); English, Russian and Chinese are built in.
 
 ## Several subscriptions
 
