@@ -40,6 +40,11 @@ const ctx = {
   get() {
     return undefined;
   },
+  effect(callback) {
+    const dispose = callback();
+    if (typeof dispose === 'function') dispose();
+    return dispose;
+  },
   emit(event, payload) {
     events.push({ event, payload });
   },

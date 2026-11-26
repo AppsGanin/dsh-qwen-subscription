@@ -171,5 +171,22 @@ process.stdout.write('stream idle watchdog\n');
   ok(chunks.some((chunk) => chunk.type === 'text-delta'), 'the chunk emitted before the stall is kept');
 }
 
+process.stdout.write('quota auto-clear on reset\n');
+{
+  await writeFile(process.env.DSH_QWEN_AUTH_FILE, J({ version: 2, accounts: [
+    { id: 'past', tokens: liveTokens('tp'), quota: { exhausted: true, resetAt: new Date(Date.now() - 1000).toISOString() } },
+    { id: 'future', tokens: liveTokens('tf'), quota: { exhausted: true, resetAt: new Date(Date.now() + 3600000).toISOString() } },
+  ] }));
+  const auth = new QwenAuth({ logger: { debug() {} } });
+  const controller = new AuthController({ auth, pool: new AccountPool({ auth }), adapter: { listModels: async () => [] }, provider: 'qwen', logger: { info() {}, warn() {}, debug() {} } });
+  const cleared = await controller.sweepExpiredQuota();
+  equal(cleared, 1, 'only the expired quota is cleared');
+  const state = await auth.state();
+  equal(state.accounts.find((a) => a.id === 'past').quota, undefined, 'the past quota flag is removed');
+  ok(state.accounts.find((a) => a.id === 'future').quota !== undefined, 'the future quota flag stays');
+  const viaStatus = await controller.dispatch('status', {});
+  equal(viaStatus.value.accounts.find((a) => a.id === 'past').quota, null, 'status also reflects the cleared quota');
+}
+
 await rm(dir, { recursive: true, force: true });
 process.stdout.write('\n' + String(checks) + ' regression checks passed\n');
