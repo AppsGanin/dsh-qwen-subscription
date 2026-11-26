@@ -38,7 +38,8 @@
   "scripts": {
     "login": "node bin/qwen-login.mjs",
     "smoke": "node test/smoke.mjs",
-    "test": "node --test test/"
+    "test": "node test/run-all.mjs",
+    "test:live": "node test/smoke.mjs --live && node test/live-tools.mjs && node test/live-image.mjs"
   },
   "author": "AppsGanin",
   "repository": {
