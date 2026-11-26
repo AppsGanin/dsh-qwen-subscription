@@ -15,6 +15,9 @@ updates:
       # bundles writer 8; the release notes step breaks on the mismatch.
       - dependency-name: conventional-changelog-conventionalcommits
         update-types: [version-update:semver-major]
+      # semantic-release 26 requires Node >= 26.13; CI runs Node 20 and 24.
+      - dependency-name: semantic-release
+        update-types: [version-update:semver-major]
   # GitHub Actions used by CI and Release.
   - package-ecosystem: github-actions
     directory: /
