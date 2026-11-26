@@ -11,7 +11,7 @@ Adds the provider `qwen` with `qwen4-max`, `qwen3.8-max`, and `qwen3.8-flash` (1
 
 ## Requirements
 
-- DeepSeek Harness with the Web GUI, `0.2.0` or newer.
+- DeepSeek Harness `0.2.0` or newer, in any profile. The settings card is part of the Web GUI; a headless profile signs in with `dsh-qwen-login`.
 - A qwen.ai subscription that the Qwen Code CLI can sign in to.
 
 ## Install

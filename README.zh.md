@@ -11,7 +11,7 @@
 
 ## 环境要求
 
-- 带 Web 界面的 DeepSeek Harness，`0.2.0` 或更新版本。
+- DeepSeek Harness `0.2.0` 或更新版本，任意配置文件。设置卡片属于 Web 界面；无界面配置文件用 `dsh-qwen-login` 登录。
 - Qwen Code CLI 可以登录的 qwen.ai 订阅。
 
 ## 安装
