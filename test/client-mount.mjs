@@ -743,6 +743,19 @@ await check('the test-connection button calls qwen-auth.test and shows the resul
   }
 });
 
+await check('an account with usage shows the request/token line', async () => {
+  const withUsage = { ...SIGNED_STATUS, accounts: SIGNED_STATUS.accounts.map((a) => ({ ...a, usage: { requests: 7, inputTokens: 1200, outputTokens: 340 } })) };
+  const rpc = createRpc({ status: () => ({ ok: true, value: withUsage }) });
+  const renderer = await mountSection(section, rpc);
+  try {
+    const text = renderer.text();
+    assert.ok(text.includes('запросов: 7'), 'the usage request count is missing');
+    assert.ok(text.includes('1200'), 'the usage input tokens are missing');
+  } finally {
+    renderer.unmount();
+  }
+});
+
 await check('switching the host language to English re-renders the card in English', async () => {
   const rpc = createRpc({ status: () => ({ ok: true, value: SIGNED_STATUS }) });
   const renderer = await mountSection(section, rpc);

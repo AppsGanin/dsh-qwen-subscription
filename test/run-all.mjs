@@ -21,6 +21,7 @@ const suites = [
   'client-mount',
   'regressions',
   'credential-lock',
+  'usage-ledger',
 ]
 
 function run(file) {
