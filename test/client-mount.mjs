@@ -728,6 +728,22 @@ await check('prefer and signOut send the account id and refresh the status', asy
   }
 });
 
+await check('signing out all accounts is one call without an account id', async () => {
+  const rpc = createRpc({
+    status: () => ({ ok: true, value: SIGNED_STATUS }),
+    signOut: () => ({ ok: true, value: { signedOut: 2, revoked: true } }),
+  });
+  const renderer = await mountSection(section, rpc);
+  try {
+    await renderer.click('Выйти из всех');
+    const call = rpc.calls.filter((entry) => entry.endpoint === method('signOut')).pop();
+    assert.ok(call, 'signOut was not called');
+    assert.equal(call.payload.accountId, undefined, 'sign-out-all must not name an account');
+  } finally {
+    renderer.unmount();
+  }
+});
+
 await check('every call uses the /api channel and a qwen-auth. method name', () => {
   assert.ok(allCalls.length > 0, 'no RPC call was made at all');
   for (const call of allCalls) {
