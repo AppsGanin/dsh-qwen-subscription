@@ -5,8 +5,6 @@ English | [Русский](README.ru.md)
 Use your **qwen.ai subscription** inside DeepSeek Harness — no API key, no separate billing.
 Adds the provider `qwen` with `qwen4-max`, `qwen3.8-max`, and `qwen3.8-flash` (1M context, text and images).
 
-Source: [github.com/AppsGanin/dsh-qwen-subscription](https://github.com/AppsGanin/dsh-qwen-subscription)
-
 ## Install
 
 ```sh

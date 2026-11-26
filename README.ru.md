@@ -6,8 +6,6 @@
 Добавляет провайдера `qwen` с моделями `qwen4-max`, `qwen3.8-max` и `qwen3.8-flash`
 (контекст 1M, текст и картинки).
 
-Исходники: [github.com/AppsGanin/dsh-qwen-subscription](https://github.com/AppsGanin/dsh-qwen-subscription)
-
 ## Установка
 
 ```sh
