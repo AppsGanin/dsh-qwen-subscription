@@ -66,6 +66,8 @@ await auth.setPreferred(second.id);
 equal((await auth.state()).preferredId, second.id, 'prefer moves the preferred account');
 await auth.signIn({ tokens: liveTokens('token-legacy-2'), account: { sub: 'abcdef123456', email: 'legacy@example.com' } });
 equal((await auth.state()).accounts.length, 2, 're-signing in does not duplicate the account');
+const labeled = await auth.signIn({ tokens: liveTokens('token-two-labeled'), account: { sub: 'zzz111222333', email: 'second@example.com' }, label: 'work subscription' });
+equal(accountLabel(labeled), 'work subscription', 'an explicit note becomes the account label');
 
 process.stdout.write('pool order\n');
 const pool = new AccountPool({ auth, logger: { warn() {} } });

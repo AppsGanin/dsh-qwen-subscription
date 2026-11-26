@@ -341,6 +341,18 @@ function createRenderer(ReactRuntime) {
     return view.nodes.filter((node) => node.tag === 'a' && node.text === label)[0] || null;
   }
 
+  function findInput(placeholder) {
+    return view.nodes.filter((node) => node.tag === 'input' && node.props.placeholder === placeholder)[0] || null;
+  }
+
+  async function type(placeholder, value) {
+    const target = findInput(placeholder);
+    if (!target) throw new Error('input not found: ' + placeholder);
+    if (typeof target.props.onChange !== 'function') throw new Error('input is not editable: ' + placeholder);
+    target.props.onChange({ target: { value } });
+    await pass();
+  }
+
   async function click(label) {
     const target = findButton(label);
     if (!target) throw new Error('button not found: ' + label);
@@ -370,6 +382,8 @@ function createRenderer(ReactRuntime) {
     unmount,
     findButton,
     findLink,
+    findInput,
+    type,
     text: () => view.text,
     nodes: () => view.nodes,
   };
@@ -738,6 +752,25 @@ await check('the test-connection button calls qwen-auth.test and shows the resul
     await settle(renderer, 3);
     assert.ok(rpc.calls.some((call) => call.endpoint === method('test')), 'qwen-auth.test was not called');
     assert.ok(renderer.text().includes('123'), 'the latency is not shown');
+  } finally {
+    renderer.unmount();
+  }
+});
+
+await check('an account note is sent as the login label', async () => {
+  const rpc = createRpc({
+    status: () => ({ ok: true, value: EMPTY_STATUS }),
+    loginStart: () => ({ ok: true, value: { flowId: 'flow_lbl', userCode: 'U-1', url: 'https://chat.qwen.ai/authorize?x=1', expiresAt: new Date(Date.now() + 600000).toISOString() } }),
+    loginPoll: () => ({ ok: true, value: { state: 'pending' } }),
+  });
+  const renderer = await mountSection(section, rpc);
+  try {
+    assert.ok(renderer.findInput('Необязательная заметка об аккаунте'), 'the account-note input is missing');
+    await renderer.type('Необязательная заметка об аккаунте', 'work subscription');
+    await renderer.click('Войти');
+    const start = rpc.calls.filter((call) => call.endpoint === method('loginStart')).pop();
+    assert.ok(start, 'loginStart was not called');
+    assert.equal(start.payload.label, 'work subscription', 'loginStart did not receive the note as label');
   } finally {
     renderer.unmount();
   }
