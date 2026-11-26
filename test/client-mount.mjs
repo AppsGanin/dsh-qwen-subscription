@@ -791,6 +791,20 @@ await check('controls carry accessible labels and the card is focus-scoped', asy
   }
 });
 
+await check('the card lists the advertised models', async () => {
+  const withModels = { ...EMPTY_STATUS, models: [{ id: 'qwen4-max', name: 'Qwen4 Max' }, { id: 'qwen3.8-flash', name: 'Qwen3.8 Flash' }] };
+  const rpc = createRpc({ status: () => ({ ok: true, value: withModels }) });
+  const renderer = await mountSection(section, rpc);
+  try {
+    const text = renderer.text();
+    assert.ok(text.includes('qwen4-max'), 'the first model id is missing');
+    assert.ok(text.includes('qwen3.8-flash'), 'the second model id is missing');
+    assert.ok(text.includes('Модели:'), 'the models label is missing');
+  } finally {
+    renderer.unmount();
+  }
+});
+
 await check('an account with usage shows the request/token line', async () => {
   const withUsage = { ...SIGNED_STATUS, accounts: SIGNED_STATUS.accounts.map((a) => ({ ...a, usage: { requests: 7, inputTokens: 1200, outputTokens: 340 } })) };
   const rpc = createRpc({ status: () => ({ ok: true, value: withUsage }) });
