@@ -10,6 +10,11 @@ updates:
       dev-dependencies:
         dependency-type: development
         update-types: [minor, patch]
+    ignore:
+      # v10 needs conventional-changelog-writer@9, while semantic-release
+      # bundles writer 8; the release notes step breaks on the mismatch.
+      - dependency-name: conventional-changelog-conventionalcommits
+        update-types: [version-update:semver-major]
   # GitHub Actions used by CI and Release.
   - package-ecosystem: github-actions
     directory: /

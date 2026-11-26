@@ -169,10 +169,24 @@ function createRpc(handlers) {
  * @param ReactRuntime - the react module the bundle received.
  * @returns mount / pass / text / nodes / find helpers / click / unmount.
  */
-function createRenderer(ReactRuntime) {
+function dispatcherSlot(ReactRuntime) {
   const internals = ReactRuntime.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-  assert.ok(internals && internals.ReactCurrentDispatcher, 'the react build exposes no dispatcher slot');
-  const dispatcherStack = internals.ReactCurrentDispatcher;
+  if (internals && internals.ReactCurrentDispatcher) return internals.ReactCurrentDispatcher;
+  // React 19 dropped the named slot: the dispatcher now hangs off the shared
+  // internals object as `H`, which is all the walker below needs.
+  const modern = ReactRuntime.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+  if (modern && 'H' in modern) {
+    return {
+      get current() { return modern.H; },
+      set current(value) { modern.H = value; },
+    };
+  }
+  return null;
+}
+
+function createRenderer(ReactRuntime) {
+  const dispatcherStack = dispatcherSlot(ReactRuntime);
+  assert.ok(dispatcherStack, 'the react build exposes no dispatcher slot');
   const realSetTimeout = globalThis.setTimeout;
   const instances = new Map();
   let rootElement = null;
@@ -728,6 +742,22 @@ await check('prefer and signOut send the account id and refresh the status', asy
   }
 });
 
+await check('signing out all accounts is one call without an account id', async () => {
+  const rpc = createRpc({
+    status: () => ({ ok: true, value: SIGNED_STATUS }),
+    signOut: () => ({ ok: true, value: { signedOut: 2, revoked: true } }),
+  });
+  const renderer = await mountSection(section, rpc);
+  try {
+    await renderer.click('Выйти из всех');
+    const call = rpc.calls.filter((entry) => entry.endpoint === method('signOut')).pop();
+    assert.ok(call, 'signOut was not called');
+    assert.equal(call.payload.accountId, undefined, 'sign-out-all must not name an account');
+  } finally {
+    renderer.unmount();
+  }
+});
+
 await check('every call uses the /api channel and a qwen-auth. method name', () => {
   assert.ok(allCalls.length > 0, 'no RPC call was made at all');
   for (const call of allCalls) {
@@ -799,20 +829,69 @@ await check('the card lists the advertised models', async () => {
     const text = renderer.text();
     assert.ok(text.includes('qwen4-max'), 'the first model id is missing');
     assert.ok(text.includes('qwen3.8-flash'), 'the second model id is missing');
-    assert.ok(text.includes('Модели:'), 'the models label is missing');
+    assert.ok(text.includes('Модели'), 'the models label is missing');
   } finally {
     renderer.unmount();
   }
 });
 
+await check('the pool and the models sit under their own section labels', async () => {
+  const rpc = createRpc({ status: () => ({ ok: true, value: { ...SIGNED_STATUS, models: [{ id: 'qwen4-max' }] } }) });
+  const renderer = await mountSection(section, rpc);
+  try {
+    const text = renderer.text();
+    assert.ok(text.includes('Аккаунты'), 'the pool label is missing');
+    assert.ok(text.includes('Модели'), 'the models label is missing');
+  } finally {
+    renderer.unmount();
+  }
+});
+
+await check('the injected stylesheet carries hover and focus rules and is removed on dispose', () => {
+  const appended = [];
+  const removed = [];
+  const previous = globalThis.document;
+  globalThis.document = {
+    createElement() {
+      const node = { textContent: '', attributes: {}, setAttribute(name, value) { this.attributes[name] = value; }, remove() { removed.push(this); } };
+      return node;
+    },
+    head: { appendChild(node) { appended.push(node); } },
+  };
+  const cleanups = [];
+  try {
+    bundle.apply({
+      get(name) {
+        if (name === 'connection') return { rpc: connectionRpc };
+        if (name === 'locale') return locale;
+        return undefined;
+      },
+      effect(callback) { const cleanup = callback(); if (typeof cleanup === 'function') cleanups.push(cleanup); return cleanup; },
+      slots: { inject(name, callback) { return callback(); }, register(config, component) { return { config, component }; } },
+    });
+  } finally {
+    globalThis.document = previous;
+  }
+  assert.equal(appended.length, 1, 'exactly one style element is injected');
+  const css = appended[0].textContent;
+  assert.ok(css.includes(':focus-visible'), 'the focus ring rule is missing');
+  assert.ok(css.includes(':not(:disabled):hover'), 'the hover rule is missing');
+  assert.ok(css.includes('prefers-reduced-motion'), 'the reduced-motion guard is missing');
+  // The last effect is the stylesheet one; disposing the locale registration would
+  // strip the dictionaries that the checks after this one rely on.
+  cleanups[cleanups.length - 1]();
+  assert.equal(removed.length, 1, 'the style element is removed when the plugin disposes');
+});
+
 await check('an account with usage shows the request/token line', async () => {
-  const withUsage = { ...SIGNED_STATUS, accounts: SIGNED_STATUS.accounts.map((a) => ({ ...a, usage: { requests: 7, inputTokens: 1200, outputTokens: 340 } })) };
+  const withUsage = { ...SIGNED_STATUS, accounts: SIGNED_STATUS.accounts.map((a) => ({ ...a, usage: { requests: 7, inputTokens: 1200, outputTokens: 340, models: { 'qwen3.8-flash': { requests: 4, inputTokens: 1200, outputTokens: 340 } } } })) };
   const rpc = createRpc({ status: () => ({ ok: true, value: withUsage }) });
   const renderer = await mountSection(section, rpc);
   try {
     const text = renderer.text();
     assert.ok(text.includes('запросов: 7'), 'the usage request count is missing');
     assert.ok(text.includes('1200'), 'the usage input tokens are missing');
+    assert.ok(text.includes('qwen3.8-flash: запросов 4'), 'the per-model usage line is missing');
   } finally {
     renderer.unmount();
   }

@@ -1,6 +1,6 @@
 {
   "name": "dsh-llm-qwen-subscription",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Use a qwen.ai subscription as a DeepSeek Harness LLM provider (qwen4-max, qwen3.8-max, qwen3.8-flash) with OAuth device-flow sign-in and an account pool.",
   "license": "MIT",
   "type": "module",
@@ -68,7 +68,7 @@
     "@semantic-release/git": "^11.0.1",
     "c8": "^12.0.0",
     "conventional-changelog-conventionalcommits": "^8.0.0",
-    "react": "18.3.1",
+    "react": "19.3.1",
     "semantic-release": "^25.0.9"
   },
   "publishConfig": {
