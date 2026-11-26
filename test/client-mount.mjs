@@ -169,10 +169,24 @@ function createRpc(handlers) {
  * @param ReactRuntime - the react module the bundle received.
  * @returns mount / pass / text / nodes / find helpers / click / unmount.
  */
-function createRenderer(ReactRuntime) {
+function dispatcherSlot(ReactRuntime) {
   const internals = ReactRuntime.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-  assert.ok(internals && internals.ReactCurrentDispatcher, 'the react build exposes no dispatcher slot');
-  const dispatcherStack = internals.ReactCurrentDispatcher;
+  if (internals && internals.ReactCurrentDispatcher) return internals.ReactCurrentDispatcher;
+  // React 19 dropped the named slot: the dispatcher now hangs off the shared
+  // internals object as `H`, which is all the walker below needs.
+  const modern = ReactRuntime.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+  if (modern && 'H' in modern) {
+    return {
+      get current() { return modern.H; },
+      set current(value) { modern.H = value; },
+    };
+  }
+  return null;
+}
+
+function createRenderer(ReactRuntime) {
+  const dispatcherStack = dispatcherSlot(ReactRuntime);
+  assert.ok(dispatcherStack, 'the react build exposes no dispatcher slot');
   const realSetTimeout = globalThis.setTimeout;
   const instances = new Map();
   let rootElement = null;
