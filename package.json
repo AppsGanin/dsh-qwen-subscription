@@ -60,5 +60,8 @@
     "qwen.ai",
     "subscription",
     "device-flow"
-  ]
+  ],
+  "devDependencies": {
+    "react": "18.3.1"
+  }
 }
