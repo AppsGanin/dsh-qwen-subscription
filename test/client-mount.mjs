@@ -806,13 +806,14 @@ await check('the card lists the advertised models', async () => {
 });
 
 await check('an account with usage shows the request/token line', async () => {
-  const withUsage = { ...SIGNED_STATUS, accounts: SIGNED_STATUS.accounts.map((a) => ({ ...a, usage: { requests: 7, inputTokens: 1200, outputTokens: 340 } })) };
+  const withUsage = { ...SIGNED_STATUS, accounts: SIGNED_STATUS.accounts.map((a) => ({ ...a, usage: { requests: 7, inputTokens: 1200, outputTokens: 340, models: { 'qwen3.8-flash': { requests: 4, inputTokens: 1200, outputTokens: 340 } } } })) };
   const rpc = createRpc({ status: () => ({ ok: true, value: withUsage }) });
   const renderer = await mountSection(section, rpc);
   try {
     const text = renderer.text();
     assert.ok(text.includes('запросов: 7'), 'the usage request count is missing');
     assert.ok(text.includes('1200'), 'the usage input tokens are missing');
+    assert.ok(text.includes('qwen3.8-flash: запросов 4'), 'the per-model usage line is missing');
   } finally {
     renderer.unmount();
   }

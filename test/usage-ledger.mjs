@@ -26,22 +26,27 @@ const J = JSON.stringify;
 process.stdout.write('ledger counters\n');
 {
   const ledger = new UsageLedger();
-  await ledger.record('a1', { inputTokens: 10, outputTokens: 4 });
-  await ledger.record('a1', { inputTokens: 7, outputTokens: 2 });
-  await ledger.record('a2', { inputTokens: 1, outputTokens: 1 });
+  await ledger.record('a1', 'qwen4-max', { inputTokens: 10, outputTokens: 4 });
+  await ledger.record('a1', 'qwen4-max', { inputTokens: 7, outputTokens: 2 });
+  await ledger.record('a1', 'qwen3.8-flash', { inputTokens: 3, outputTokens: 1 });
+  await ledger.record('a2', 'qwen3.8-flash', { inputTokens: 1, outputTokens: 1 });
   const totals = await ledger.totals();
-  equal(totals.a1.requests, 2, 'requests accumulate');
-  equal(totals.a1.inputTokens, 17, 'input tokens accumulate');
-  equal(totals.a1.outputTokens, 6, 'output tokens accumulate');
+  equal(totals.a1.requests, 3, 'requests accumulate');
+  equal(totals.a1.inputTokens, 20, 'input tokens accumulate');
+  equal(totals.a1.outputTokens, 7, 'output tokens accumulate');
   equal(totals.a2.requests, 1, 'accounts are tracked separately');
+  equal(totals.a1.models['qwen4-max'].requests, 2, 'per-model requests are tracked');
+  equal(totals.a1.models['qwen4-max'].inputTokens, 17, 'per-model input tokens are tracked');
+  equal(totals.a1.models['qwen3.8-flash'].requests, 1, 'models are tracked separately');
   const reloaded = new UsageLedger();
-  equal((await reloaded.totals()).a1.inputTokens, 17, 'totals persist across instances');
+  equal((await reloaded.totals()).a1.inputTokens, 20, 'totals persist across instances');
+  equal((await reloaded.totals()).a1.models['qwen4-max'].requests, 2, 'per-model totals persist across instances');
 }
 
 process.stdout.write('concurrent records\n');
 {
   const ledger = new UsageLedger();
-  await Promise.all(Array.from({ length: 6 }, () => ledger.record('c1', { inputTokens: 1, outputTokens: 1 })));
+  await Promise.all(Array.from({ length: 6 }, () => ledger.record('c1', 'm', { inputTokens: 1, outputTokens: 1 })));
   equal((await ledger.totals()).c1.requests, 6, 'concurrent records do not lose updates');
 }
 
@@ -52,7 +57,7 @@ process.stdout.write('adapter records usage on success\n');
   const account = await auth.account();
   const pool = new AccountPool({ auth, logger: { warn() {} } });
   const recorded = [];
-  const usage = { record: async (id, u) => { recorded.push({ id, u }); } };
+  const usage = { record: async (id, model, u) => { recorded.push({ id, model, u }); } };
   const adapter = new QwenAdapter({ auth, pool, usage, logger: { warn() {} } });
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response(
@@ -65,6 +70,7 @@ process.stdout.write('adapter records usage on success\n');
   globalThis.fetch = realFetch;
   equal(recorded.length, 1, 'usage was recorded once');
   equal(recorded[0].id, account.id, 'usage is attributed to the serving account');
+  equal(recorded[0].model, 'qwen3.8-flash', 'usage is attributed to the serving model');
   equal(recorded[0].u.inputTokens, 20, 'recorded input tokens match the stream');
   equal(recorded[0].u.outputTokens, 5, 'recorded output tokens match the stream');
 }
@@ -74,11 +80,12 @@ process.stdout.write('status exposes usage\n');
   const auth = new QwenAuth({ logger: { debug() {} } });
   const account = await auth.account();
   const ledger = new UsageLedger();
-  await ledger.record(account.id, { inputTokens: 3, outputTokens: 2 });
+  await ledger.record(account.id, 'qwen4-max', { inputTokens: 3, outputTokens: 2 });
   const controller = new AuthController({ auth, pool: new AccountPool({ auth }), usage: ledger, adapter: { listModels: async () => [] }, provider: 'qwen', logger: { info() {}, warn() {}, debug() {} } });
   const status = await controller.dispatch('status', {});
   equal(status.value.accounts[0].usage.requests, 1, 'status carries the account usage');
   equal(status.value.accounts[0].usage.inputTokens, 3, 'status carries input tokens');
+  equal(status.value.accounts[0].usage.models['qwen4-max'].requests, 1, 'status carries per-model usage');
 }
 
 await rm(dir, { recursive: true, force: true });
