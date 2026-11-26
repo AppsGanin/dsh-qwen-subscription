@@ -1,11 +1,18 @@
 # dsh-qwen-subscription
 
+[![CI](https://github.com/AppsGanin/dsh-qwen-subscription/actions/workflows/ci.yml/badge.svg)](https://github.com/AppsGanin/dsh-qwen-subscription/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dsh-llm-qwen-subscription)](https://www.npmjs.com/package/dsh-llm-qwen-subscription)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 [English](README.md) | [Русский](README.ru.md) | 中文
 
 在 DeepSeek Harness 里使用你的 **qwen.ai 订阅** —— 无需 API 密钥，也无需单独计费。
 添加提供商 `qwen`，包含 `qwen4-max`、`qwen3.8-max` 和 `qwen3.8-flash`（100 万上下文，支持文本和图像）。
 
-npm: [dsh-llm-qwen-subscription](https://www.npmjs.com/package/dsh-llm-qwen-subscription)
+## 环境要求
+
+- 带 Web 界面的 DeepSeek Harness，`0.2.0` 或更新版本。
+- Qwen Code CLI 可以登录的 qwen.ai 订阅。
 
 ## 安装
 
@@ -43,7 +50,7 @@ dsh plugin --profile desktop update dsh-llm-qwen-subscription
 **添加账号** 会登录第二个 qwen.ai 账号。请求从首选账号开始，当额度用尽或提供商限流时转到下一个，
 因此只要另一个订阅还有余量，回合就不会失败。额度用尽时，卡片会显示重置日期。
 
-## 如果出现问题
+## 常见问题
 
 | 你看到的 | 该怎么做 |
 |---|---|
@@ -52,6 +59,8 @@ dsh plugin --profile desktop update dsh-llm-qwen-subscription
 | “sign-in ... is no longer valid” | 在 设置 → Qwen 重新登录 |
 | “Quota exhausted until …” | 添加第二个账号，或等待所示日期 |
 
-## 许可证
+## 链接
 
-MIT —— 见 [LICENSE](LICENSE)。
+- [参与贡献](CONTRIBUTING.md) —— 提交约定与发布流程。
+- [安全策略](SECURITY.md) —— 私密漏洞报告渠道。
+- [许可证](LICENSE) —— MIT。

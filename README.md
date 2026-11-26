@@ -1,11 +1,18 @@
 # dsh-qwen-subscription
 
+[![CI](https://github.com/AppsGanin/dsh-qwen-subscription/actions/workflows/ci.yml/badge.svg)](https://github.com/AppsGanin/dsh-qwen-subscription/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dsh-llm-qwen-subscription)](https://www.npmjs.com/package/dsh-llm-qwen-subscription)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 English | [Русский](README.ru.md) | [中文](README.zh.md)
 
 Use your **qwen.ai subscription** inside DeepSeek Harness — no API key, no separate billing.
 Adds the provider `qwen` with `qwen4-max`, `qwen3.8-max`, and `qwen3.8-flash` (1M context, text and images).
 
-npm: [dsh-llm-qwen-subscription](https://www.npmjs.com/package/dsh-llm-qwen-subscription)
+## Requirements
+
+- DeepSeek Harness with the Web GUI, `0.2.0` or newer.
+- A qwen.ai subscription that the Qwen Code CLI can sign in to.
 
 ## Install
 
@@ -45,7 +52,7 @@ account shows up in the same card.
 move to the next one when credits run out or the provider rate-limits, so a turn does not fail while
 another subscription has room. When a quota is exhausted, the card shows the date it resets.
 
-## If something is wrong
+## Troubleshooting
 
 | What you see | What to do |
 |---|---|
@@ -54,6 +61,8 @@ another subscription has room. When a quota is exhausted, the card shows the dat
 | "sign-in ... is no longer valid" | Sign in again in Settings → Qwen |
 | "Quota exhausted until …" | Add a second account, or wait for the date shown |
 
-## License
+## Links
 
-MIT — see [LICENSE](LICENSE).
+- [Contributing](CONTRIBUTING.md) — commit conventions and the release flow.
+- [Security policy](SECURITY.md) — private vulnerability reporting.
+- [License](LICENSE) — MIT.

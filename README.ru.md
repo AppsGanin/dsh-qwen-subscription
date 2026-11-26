@@ -1,12 +1,19 @@
 # dsh-qwen-subscription
 
+[![CI](https://github.com/AppsGanin/dsh-qwen-subscription/actions/workflows/ci.yml/badge.svg)](https://github.com/AppsGanin/dsh-qwen-subscription/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dsh-llm-qwen-subscription)](https://www.npmjs.com/package/dsh-llm-qwen-subscription)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 [English](README.md) | Русский | [中文](README.zh.md)
 
 Ваша **подписка qwen.ai** внутри DeepSeek Harness — без API-ключа и отдельного биллинга.
 Добавляет провайдера `qwen` с моделями `qwen4-max`, `qwen3.8-max` и `qwen3.8-flash`
 (контекст 1M, текст и картинки).
 
-npm: [dsh-llm-qwen-subscription](https://www.npmjs.com/package/dsh-llm-qwen-subscription)
+## Требования
+
+- DeepSeek Harness с веб-GUI, версия `0.2.0` или новее.
+- Подписка qwen.ai, в которую может войти Qwen Code CLI.
 
 ## Установка
 
@@ -55,6 +62,8 @@ Settings → **Qwen** → «Войти». Появится код; открой�
 | «sign-in ... is no longer valid» | Войдите заново в Settings → Qwen |
 | «Quota exhausted until …» | Добавьте второй аккаунт или дождитесь даты из плашки |
 
-## Лицензия
+## Ссылки
 
-MIT — см. [LICENSE](LICENSE).
+- [Участие](CONTRIBUTING.md) — соглашения о коммитах и процесс релиза.
+- [Безопасность](SECURITY.md) — приватный канал сообщения об уязвимостях.
+- [Лицензия](LICENSE) — MIT.
