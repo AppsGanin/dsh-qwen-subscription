@@ -804,6 +804,12 @@ await check('switching the host language to English re-renders the card in Engli
     locale.setLanguage('ru');
     await settle(renderer, 4);
     assert.ok(renderer.findButton('Выйти'), 'the card did not switch back to Russian');
+    locale.setLanguage('zh');
+    await settle(renderer, 4);
+    assert.ok(renderer.findButton('退出'), 'the card did not switch to Chinese');
+    assert.ok(renderer.text().includes('访问令牌至'), 'the Chinese expiry label is missing');
+    locale.setLanguage('ru');
+    await settle(renderer, 4);
   } finally {
     renderer.unmount();
   }

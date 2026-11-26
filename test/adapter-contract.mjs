@@ -62,6 +62,8 @@ equal(prepared.model.id, 'qwen4-max', 'prepareCall resolves the exact model');
 ok(typeof prepared.stream === 'function', 'prepareCall returns a dispatch entry point');
 const models = await adapter.listModels('qwen');
 ok(models.length >= 3, 'listModels advertises the catalog');
+ok(models.every((model) => model.badge && typeof model.badge.text.en === 'string'), 'every model carries a localized context badge');
+ok(models[0].badge.text.en.includes('context'), 'the badge names the context window');
 const resolved = await adapter.resolveModel('qwen', 'qwen4-max');
 ok(resolved.context.contextWindow > 0, 'resolveModel answers metadata');
 
