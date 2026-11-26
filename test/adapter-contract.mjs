@@ -51,7 +51,7 @@ equal(adapter.providerInfo('qwen'), { id: 'qwen', name: 'Qwen (qwen.ai subscript
 equal(adapter.providerRetryPolicy('qwen'), undefined, 'providerRetryPolicy leaves the harness defaults in place');
 equal(adapter.imageRequestPricing('qwen', 'qwen4-max'), undefined, 'imageRequestPricing declares no route-owned pricing');
 const image = { attachmentId: 'att_1', mediaType: 'image/png', bytes: 4096, width: 800, height: 600 };
-equal(adapter.imageRequestTarget('qwen', 'qwen4-max', image), { width: 800, height: 600, maxBytes: 4096 }, 'imageRequestTarget sends the image unchanged');
+equal(adapter.imageRequestTarget('qwen', 'qwen4-max', image), { width: 800, height: 600, maxBytes: 4194304 }, 'imageRequestTarget keeps small dimensions but applies the byte budget');
 
 process.stdout.write('compaction-style call path\n');
 // The compaction that failed asked the adapter to price a request image while
@@ -76,6 +76,24 @@ process.stdout.write('disclosed output cap\n');
   equal(modelInfo('qwen', 'm', { ...base, maxOutputTokens: 8192 }, { maxTokens: 65536 }).defaultMaxTokens, 8192, 'the disclosed cap bounds a higher configured value');
   equal(modelInfo('qwen', 'm', base).defaultMaxTokens, 32768, 'without a disclosed cap the default applies');
   equal(modelInfo('qwen', 'm', base, { maxTokens: 4096 }).defaultMaxTokens, 4096, 'a configured cap applies when nothing is disclosed');
+}
+
+process.stdout.write('image request budget\n');
+{
+  const { requestImageTarget, prepareMessages } = await import('../lib/wire.js');
+  const big = { width: 8000, height: 6000, bytes: 20000000 };
+  const target = requestImageTarget(big);
+  equal(Math.max(target.width, target.height), 4096, 'the long edge is capped at 4096');
+  equal(target.maxBytes, 4194304, 'the byte budget is 4 MiB');
+  ok(target.width < big.width && target.height < big.height, 'a large screenshot is downscaled');
+  const small = { width: 800, height: 600, bytes: 100000 };
+  equal(requestImageTarget(small), { width: 800, height: 600, maxBytes: 4194304 }, 'a small image keeps its dimensions');
+  equal(adapter.imageRequestTarget('qwen', 'qwen4-max', big), target, 'the adapter declares the same projection the wire sends');
+  let captured = null;
+  const attachments = { readImageRequest: async (ref, t) => { captured = t; return { mediaType: 'image/png', data: Buffer.from([1]) }; } };
+  await prepareMessages({ messages: [{ role: 'user', content: [{ type: 'image', attachment: { attachmentId: 'i', width: 8000, height: 6000, bytes: 20000000, mediaType: 'image/png' } }] }] }, { attachments });
+  equal(Math.max(captured.width, captured.height), 4096, 'the wire reads a downscaled request version');
+  equal(captured.maxBytes, 4194304, 'the wire applies the byte budget');
 }
 
 process.stdout.write('\n' + String(checks) + ' adapter contract checks passed\n');
