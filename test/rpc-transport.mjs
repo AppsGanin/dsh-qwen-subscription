@@ -142,6 +142,10 @@ globalThis.fetch = realFetch;
   equal(tested.result.ok, true, 'test connection answers successfully');
   equal(tested.result.value.models, 2, 'test connection reports the model count');
   ok(Number.isFinite(tested.result.value.latencyMs), 'test connection reports latency');
+  const aborted = new AbortController();
+  aborted.abort();
+  const abortedResult = await controller.dispatch('test', {}, aborted.signal);
+  equal([abortedResult.ok, abortedResult.error.code], [false, 'ABORTED'], 'an aborted connection test reports ABORTED');
 }
 
 const signOutRoute = routes.find((route) => route.path === '/api/qwen-auth.signOut');
