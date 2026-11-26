@@ -39,7 +39,8 @@
     "login": "node bin/qwen-login.mjs",
     "smoke": "node test/smoke.mjs",
     "test": "node test/run-all.mjs",
-    "test:live": "node test/smoke.mjs --live && node test/live-tools.mjs && node test/live-image.mjs"
+    "test:live": "node test/smoke.mjs --live && node test/live-tools.mjs && node test/live-image.mjs",
+    "release": "semantic-release"
   },
   "author": "AppsGanin",
   "repository": {
@@ -61,7 +62,11 @@
     "device-flow"
   ],
   "devDependencies": {
-    "react": "18.3.1"
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/git": "^11.0.1",
+    "conventional-changelog-conventionalcommits": "^10.4.1",
+    "react": "18.3.1",
+    "semantic-release": "^25.0.9"
   },
   "publishConfig": {
     "access": "public"
