@@ -27,7 +27,7 @@ add that directory to `PATH`.
 
 ## Sign in
 
-Settings → **Qwen** → «Войти». A code appears; open the confirmation page, approve it, and the
+Settings → **Qwen** → **Sign in**. A code appears; open the confirmation page, approve it, and the
 account shows up in the same card.
 
 ## Use it
@@ -35,10 +35,11 @@ account shows up in the same card.
 - Pick a `qwen` model in the model picker: `qwen3.8-flash` for quick turns, `qwen4-max` for hard ones.
 - The reasoning level (`off` / `low` / `medium` / `high`) is selectable per model, next to the model name.
 - Images can be attached as usual; text, reasoning, tool calls and token usage all stream normally.
+- The settings card follows the app language (Settings → General → Language); English and Russian are built in.
 
 ## Several subscriptions
 
-«Добавить аккаунт» signs in a second qwen.ai account. Requests start with the preferred account and
+**Add account** signs in a second qwen.ai account. Requests start with the preferred account and
 move to the next one when credits run out or the provider rate-limits, so a turn does not fail while
 another subscription has room. When a quota is exhausted, the card shows the date it resets.
 
@@ -47,9 +48,9 @@ another subscription has room. When a quota is exhausted, the card shows the dat
 | What you see | What to do |
 |---|---|
 | No `qwen` models in the picker | Restart the app after installing the plugin |
-| «Qwen subscription is not signed in» | Settings → Qwen → «Войти» |
-| «sign-in ... is no longer valid» | Sign in again in Settings → Qwen |
-| «Quota exhausted until …» | Add a second account, or wait for the date shown |
+| "Qwen subscription is not signed in" | Settings → Qwen → Sign in |
+| "sign-in ... is no longer valid" | Sign in again in Settings → Qwen |
+| "Quota exhausted until …" | Add a second account, or wait for the date shown |
 
 ## License
 

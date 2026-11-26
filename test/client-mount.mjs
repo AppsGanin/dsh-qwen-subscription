@@ -383,7 +383,7 @@ function createRenderer(ReactRuntime) {
  */
 async function mountSection(section, rpc) {
   const renderer = createRenderer(React);
-  await renderer.mount(h(section, { rpc }));
+  await renderer.mount(h(section, { rpc, locale }));
   return renderer;
 }
 
@@ -433,11 +433,46 @@ new Function('window', source)(fakeWindow);
 
 const bundle = registered && registered.exports ? registered.exports : null;
 const connectionRpc = { call: () => Promise.resolve({ ok: true, value: EMPTY_STATUS }) };
+
+/**
+ * A minimal host locale service: dictionaries register per namespace, bind reads
+ * the active language at call time, and subscribe notifies on a language switch.
+ * Starts in Russian so the existing copy assertions hold; a later check flips it
+ * to English to prove the card follows the host language live.
+ */
+function makeLocale(initial) {
+  const dicts = {};
+  const listeners = new Set();
+  let snapshot = { active: initial, revision: 0 };
+  return {
+    register(ns, entries) { dicts[ns] = entries; return () => { delete dicts[ns]; }; },
+    bind(ns) {
+      return (key, params) => {
+        const table = dicts[ns] || {};
+        const active = table[snapshot.active] || {};
+        const template = active[key] !== undefined ? active[key] : ((table.en || {})[key] !== undefined ? table.en[key] : key);
+        if (!params) return template;
+        return template.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match));
+      };
+    },
+    subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+    getSnapshot() { return snapshot; },
+    setLanguage(id) {
+      snapshot = { active: id, revision: snapshot.revision + 1 };
+      for (const fn of [...listeners]) fn();
+    },
+  };
+}
+const locale = makeLocale('ru');
+
 const registrations = [];
 const ctx = {
   get(name) {
-    return name === 'connection' ? { rpc: connectionRpc } : undefined;
+    if (name === 'connection') return { rpc: connectionRpc };
+    if (name === 'locale') return locale;
+    return undefined;
   },
+  effect(callback) { return callback(); },
   slots: {
     inject(name, callback) {
       void name;
@@ -688,6 +723,26 @@ await check('every call uses the /api channel and a qwen-auth. method name', () 
       : '';
     assert.equal(ENDPOINTS.includes(bare), true, 'unexpected method name: ' + call.endpoint);
     assert.equal(typeof call.payload, 'object', 'method ' + call.endpoint + ' was called without a payload');
+  }
+});
+
+await check('switching the host language to English re-renders the card in English', async () => {
+  const rpc = createRpc({ status: () => ({ ok: true, value: SIGNED_STATUS }) });
+  const renderer = await mountSection(section, rpc);
+  try {
+    assert.ok(renderer.findButton('Выйти'), 'the card should start in Russian');
+    locale.setLanguage('en');
+    await settle(renderer, 4);
+    const text = renderer.text();
+    assert.ok(renderer.findButton('Sign out'), 'the sign-out button did not switch to English');
+    assert.ok(renderer.findButton('Add account'), 'the add-account button did not switch to English');
+    assert.ok(text.includes('Access token until'), 'the expiry label did not switch to English');
+    assert.equal(renderer.findButton('Выйти'), null, 'Russian copy survived the language switch');
+    locale.setLanguage('ru');
+    await settle(renderer, 4);
+    assert.ok(renderer.findButton('Выйти'), 'the card did not switch back to Russian');
+  } finally {
+    renderer.unmount();
   }
 });
 
